@@ -1,7 +1,10 @@
-#include "image_resize.h"
+#include "threshold_partition.h"
+#include "color_inversion.h"
 
 int main() {
-    auto *image = new imageResize("/Users/crd/Desktop/DSC00003.JPG",
-                                  "/Users/crd/Desktop/DSC00012.JPG");
-    image->run();
+//    auto *threshold = new thresholdPartition("/Users/crd/Code/Data/2/test/DSC00049.JPG");
+//    threshold->run();
+//    auto *color = new colorInversion("/Users/crd/Code/Data/2/DSC00011.JPG");
+    auto *color = new colorInversion("/Users/crd/Code/Data/2/test/DSC00012.JPG");
+    color->run();
 }

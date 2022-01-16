@@ -2,13 +2,14 @@
 // Created by 陈瑞达 on 2022/1/8.
 //
 
-#ifndef IMAGE_RESIZE_IMAGE_RESIZE_H
-#define IMAGE_RESIZE_IMAGE_RESIZE_H
+#ifndef IMAGE_RESIZE_THRESHOLD_PARTITION_H
+#define IMAGE_RESIZE_THRESHOLD_PARTITION_H
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/types_c.h>
+#include "contour_tools.h"
 
-class imageResize {
+class thresholdPartition {
 
 private:
     /**
@@ -16,14 +17,9 @@ private:
      */
     std::string srcPath;
     /**
-     * 输出地址
-     */
-    std::string outPath;
-    /**
-     *
+     * 原始影像
      */
     cv::Mat srcImage;
-    cv::Mat outImage;
 
     /**
      * 印章外边框
@@ -31,30 +27,19 @@ private:
     cv::Rect sealRect;
 
 public:
-    imageResize(std::string srcPath, std::string outPath);
+    /**
+     *
+     * @param srcPath  原始地址
+     * @param outPath  输出地址
+     */
+    thresholdPartition(std::string srcPath);
 
+    /**
+     * 主入口
+     */
     void run();
 
 private:
-    /**
-     * 边框面积大小比较
-     * @param contour_1 边框-1
-     * @param contour_2 边框-2
-     * @return 是否大于
-     */
-    static bool contourArea(const std::vector<cv::Point> &contour_1, const std::vector<cv::Point> &contour_2);
-
-    /**
-     *
-     * @param winName 窗口名称
-     * @param image images
-     * @param contours 边框s
-     * @param draw_on_blank 是否在白底上绘制
-     */
-    static void
-    drawMyContours(const std::string &winName, cv::Mat &image, const std::vector<std::vector<cv::Point>> &contours,
-                   bool draw_on_blank);
-
     /**
      * 预处理
      * @return 处理后图像
@@ -86,9 +71,7 @@ private:
      */
     void drawRect(const cv::Rect &rect);
 
-    void newSize(cv::)
-
 };
 
 
-#endif //IMAGE_RESIZE_IMAGE_RESIZE_H
+#endif //IMAGE_RESIZE_THRESHOLD_PARTITION_H

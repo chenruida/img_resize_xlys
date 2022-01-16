@@ -2,54 +2,31 @@
 // Created by 陈瑞达 on 2022/1/8.
 //
 
-#include "image_resize.h"
+#include "threshold_partition.h"
 
 #include <utility>
 
-bool imageResize::contourArea(const std::vector<cv::Point> &contour_1, const std::vector<cv::Point> &contour_2) {
-    return cv::contourArea(contour_1) > cv::contourArea(contour_2);
-}
-
-void imageResize::drawMyContours(const std::string &winName, cv::Mat &image,
-                                 const std::vector<std::vector<cv::Point>> &contours,
-                                 bool draw_on_blank) {
-    cv::Mat temp;
-    if (draw_on_blank) // 在白底上绘制轮廓
-    {
-        temp = cv::Mat(image.size(), CV_8U, cv::Scalar(255));
-        //画全部轮廓
-        cv::drawContours(temp, contours, -1, 0, 5);
-    } else // 在原图上绘制轮廓
-    {
-        temp = image.clone();
-        cv::drawContours(temp, contours, -1, cv::Scalar(0, 0, 255), 1);
-    }
-    cv::imshow(winName, temp);
-    cv::waitKey();
-}
-
-imageResize::imageResize(std::string srcPath, std::string outPath) {
+thresholdPartition::thresholdPartition(std::string srcPath) {
     this->srcPath = std::move(srcPath);
-    this->outPath = std::move(outPath);
     srcImage = cv::imread(this->srcPath, 1);
 }
 
-cv::Mat imageResize::preProcess() {
+cv::Mat thresholdPartition::preProcess() {
     cv::Mat gray, binary, element; // 临时变量
     cv::cvtColor(srcImage, gray, CV_BGR2GRAY);
     cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0);
-    cv::medianBlur(gray,gray,3);
-    cv::threshold(gray, binary, 200,255,CV_THRESH_BINARY+CV_THRESH_OTSU);
+    cv::medianBlur(gray, gray, 3);
+    cv::threshold(gray, binary, 200, 255, CV_THRESH_BINARY + CV_THRESH_OTSU);
     element = getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));//3*3全1结构元素
     cv::morphologyEx(binary, binary, cv::MORPH_CLOSE, element);
-    cv::imshow("binary", binary);
-    cv::waitKey();
+//    cv::imshow("binary", binary);
+//    cv::waitKey();
     return binary;
 
 }
 
-void imageResize::findContours(const cv::Mat &binary, std::vector<std::vector<cv::Point>> &contours,
-                               std::vector<cv::Vec4i> &hierarchy) {
+void thresholdPartition::findContours(const cv::Mat &binary, std::vector<std::vector<cv::Point>> &contours,
+                                      std::vector<cv::Vec4i> &hierarchy) {
     cv::findContours(
             binary,               // 输入二值图
             contours,             // 存储轮廓的向量
@@ -59,8 +36,9 @@ void imageResize::findContours(const cv::Mat &binary, std::vector<std::vector<cv
     printf("find %lu contours \n", contours.size());
 }
 
-cv::Rect imageResize::filterContours(std::vector<std::vector<cv::Point>> &contours, std::vector<cv::Vec4i> &hierarchy,
-                                     int minSize) {
+cv::Rect
+thresholdPartition::filterContours(std::vector<std::vector<cv::Point>> &contours, std::vector<cv::Vec4i> &hierarchy,
+                                   int minSize) {
     auto itc = contours.begin();
     auto itc_hierarchy = hierarchy.begin();
 
@@ -96,26 +74,29 @@ cv::Rect imageResize::filterContours(std::vector<std::vector<cv::Point>> &contou
     }
     printf("%lu contours remaining after length filtering \n", contours.size());
     // 排序
-    sort(contours.begin(), contours.end(), imageResize::contourArea);
-    std::cout<<contours[0].size();
+    sort(contours.begin(), contours.end(), contourTools::contourArea);
+    std::cout << contours[0].size();
     // 矩形
-    cv::Rect rect = cv::boundingRect(contours[0]);
-    rectTlX = rect.tl().x;
-    rectTlY = rect.tl().y;
-    rectBrX = rect.br().x;
-    rectBrY = rect.br().y;
-    std::cout << "左上角X:" << rectTlX << "左上角Y:" << rectTlY << "右下角X:" << rectBrX << "右下角Y:" << rectBrY << std::endl;
-    return rect;
+    sealRect = cv::boundingRect(contours[0]);
+    std::cout << "左上角X:" << sealRect.tl().x
+              << "左上角Y:" << sealRect.tl().y
+              << "右下角X:" << sealRect.br().x
+              << "右下角Y:" << sealRect.br().y << std::endl;
+    return sealRect;
 }
 
-void imageResize::drawRect(const cv::Rect &rect) {
+void thresholdPartition::drawRect(const cv::Rect &rect) {
     cv::Mat result = srcImage.clone();
     cv::rectangle(result, rect, 1, 10);//画矩形
     cv::imshow("bounding", result);
     cv::waitKey();
 }
 
-void imageResize::run() {
+void thresholdPartition::run() {
+    if (srcImage.empty()) {
+        std::cout << "没有找到影像" << std::endl;
+        return;
+    }
     cv::Mat binary = preProcess();
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;

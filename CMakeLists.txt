@@ -4,10 +4,26 @@ project(image_resize)
 set(CMAKE_CXX_STANDARD 14)
 
 find_package(OpenCV REQUIRED)
+
+set(
+        LIBRARY_OUTPUT_PATH
+        ${PROJECT_SOURCE_DIR}/lib
+)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(image_resize main.cpp image_resize.cpp image_resize.h)
+include_directories(
+        ${PROJECT_SOURCE_DIR}/include/
+)
 
+add_library(${PROJECT_NAME} STATIC
+        src/threshold_partition.cpp
+        src/color_inversion.cpp
+        src/contour_tools.cpp
+        )
 
-target_link_libraries(image_resize ${OpenCV_LIBS})
+add_executable(main main.cpp)
+
+target_link_libraries(main
+        ${OpenCV_LIBS}
+        ${PROJECT_NAME})
 
