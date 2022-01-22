@@ -31,12 +31,12 @@ public:
      * @param srcPath  原始地址
      * @param outPath  输出地址
      */
-    colorInversion(std::string srcPath);
+    explicit colorInversion(std::string srcPath);
 
     /**
      * 主入口
      */
-    void run();
+    void run(int threshold, const char *resultPath);
 };
 
 
